@@ -2,12 +2,19 @@ using CalorieTracker.Data;
 using CalorieTracker.Models;
 using CalorieTracker.Services.FoodApi;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
 
-var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllersWithViews();
+
+// Trust Railway proxy
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.KnownNetworks.Clear();
+    options.KnownProxies.Clear();
+});
 
 // SQLite
 builder.Services.AddDbContext<AppDbContext>(options =>
@@ -30,7 +37,6 @@ builder.Services.AddIdentity<AppUser, IdentityRole>(options =>
 .AddEntityFrameworkStores<AppDbContext>()
 .AddDefaultTokenProviders();
 
-// Redirect to login if not authenticated
 builder.Services.ConfigureApplicationCookie(options =>
 {
     options.LoginPath = "/account/login";
@@ -55,11 +61,22 @@ builder.Services.AddHttpClient<IFoodApiClient, OpenFoodFactsClient>(client =>
 
 var app = builder.Build();
 
-// Auto-apply migrations
+// Must be first — trust Railway's proxy
+app.UseForwardedHeaders(new ForwardedHeadersOptions
+{
+    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+});
+
+// Migrate DB
 using (var scope = app.Services.CreateScope())
 {
+    var dataPath = Environment.GetEnvironmentVariable("DATA_PATH") ?? ".";
+    Directory.CreateDirectory(dataPath);
+
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     db.Database.Migrate();
+    db.Database.ExecuteSqlRaw("PRAGMA journal_mode=WAL;");
+    db.Database.ExecuteSqlRaw("PRAGMA synchronous=NORMAL;");
 }
 
 if (!app.Environment.IsDevelopment())
@@ -68,10 +85,15 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
-app.UseHttpsRedirection();
+// Only redirect to HTTPS locally — Railway handles it at proxy level
+if (app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
+
 app.UseStaticFiles();
 app.UseRouting();
-app.UseAuthentication();  // ? must be before UseAuthorization
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllerRoute(
@@ -80,12 +102,10 @@ app.MapControllerRoute(
 
 if (app.Environment.IsDevelopment())
 {
-    // Locally: let ASP.NET Core use its default ports (5000/5001)
-    // controlled by launchSettings.json as before
     app.Run();
 }
 else
 {
-    // On Railway: use the injected PORT
+    var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
     app.Run($"http://0.0.0.0:{port}");
 }
