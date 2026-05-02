@@ -1,8 +1,203 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+﻿@model CalorieTracker.Models.DashboardViewModel
+@{
+    ViewData["Title"] = "Dashboard";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<!-- Header -->
+<div class="flex items-center justify-between mb-6">
+    <div>
+        <h1 class="text-2xl font-semibold text-gray-800">
+            Good
+            @(DateTime.Now.Hour < 12 ? "morning" : DateTime.Now.Hour < 18 ? "afternoon" : "evening") 👋
+        </h1>
+        <p class="text-gray-400 text-sm mt-0.5">@Model.Today.ToString("dddd, MMMM d")</p>
+    </div>
+    <a href="/food/search"
+       class="bg-green-500 hover:bg-green-600 text-white text-sm font-medium rounded-lg px-4 py-2 transition-colors">
+        + Add Food
+    </a>
+</div>
+
+<!-- Calorie ring + summary -->
+<div class="bg-white rounded-xl border border-gray-200 p-6 mb-4">
+    <div class="flex items-center gap-8">
+
+        <!-- SVG ring -->
+        <div class="relative flex-shrink-0">
+            @{
+                var radius = 54;
+                var circumference = 2 * Math.PI * radius;
+                var dashOffset = circumference * (1 - Model.CaloriePercent / 100.0);
+                var ringColor = Model.CaloriePercent >= 100 ? "#f87171" : "#4ade80";
+            }
+            <svg width="130" height="130" id="calorie-ring">
+                <!-- Background ring -->
+                <circle cx="65" cy="65" r="@radius"
+                        fill="none" stroke="#f3f4f6" stroke-width="10" />
+                <!-- Progress ring -->
+                <circle cx="65" cy="65" r="@radius"
+                        fill="none"
+                        stroke="@ringColor"
+                        stroke-width="10"
+                        stroke-linecap="round"
+                        stroke-dasharray="@circumference.ToString("F1")"
+                        stroke-dashoffset="@dashOffset.ToString("F1")"
+                        transform="rotate(-90 65 65)"
+                        id="calorie-progress" />
+                <!-- Center text -->
+                <text x="65" y="60" text-anchor="middle"
+                      font-size="22" font-weight="600" fill="#1f2937"
+                      id="calories-consumed">
+                    @Model.TotalCalories.ToString("F0")
+                </text>
+                <text x="65" y="78" text-anchor="middle"
+                      font-size="11" fill="#9ca3af">
+                    of @Model.Goal.CalorieTarget.ToString("F0")
+                </text>
+                <text x="65" y="93" text-anchor="middle"
+                      font-size="11" fill="#9ca3af">
+                    kcal
+                </text>
+            </svg>
+        </div>
+
+        <!-- Stats -->
+        <div class="flex-1 grid grid-cols-2 gap-4">
+            <div class="bg-gray-50 rounded-lg p-3">
+                <div class="text-xs text-gray-400 mb-1">Remaining</div>
+                <div class="text-xl font-semibold text-gray-800" id="remaining-calories">
+                    @Model.RemainingCalories.ToString("F0")
+                </div>
+                <div class="text-xs text-gray-400">kcal left</div>
+            </div>
+            <div class="bg-gray-50 rounded-lg p-3">
+                <div class="text-xs text-gray-400 mb-1">Goal</div>
+                <div class="text-xl font-semibold text-gray-800">
+                    @Model.Goal.CalorieTarget.ToString("F0")
+                </div>
+                <div class="text-xs text-gray-400">kcal / day</div>
+            </div>
+            <div class="bg-gray-50 rounded-lg p-3">
+                <div class="text-xs text-gray-400 mb-1">Meals logged</div>
+                <div class="text-xl font-semibold text-gray-800" id="meals-count">
+                    @Model.TodayEntries.Count
+                </div>
+                <div class="text-xs text-gray-400">entries today</div>
+            </div>
+            <div class="bg-gray-50 rounded-lg p-3">
+                <div class="text-xs text-gray-400 mb-1">Fiber</div>
+                <div class="text-xl font-semibold text-gray-800">
+                    @Model.TotalFiber.ToString("F1")g
+                </div>
+                <div class="text-xs text-gray-400">of @Model.Goal.FiberTargetG.ToString("F0")g</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Macro bars -->
+<div class="bg-white rounded-xl border border-gray-200 p-5 mb-4">
+    <h2 class="text-sm font-medium text-gray-600 mb-4">Macronutrients</h2>
+    <div class="space-y-3">
+
+        <div>
+            <div class="flex justify-between text-xs text-gray-500 mb-1">
+                <span>🥩 Protein</span>
+                <span id="protein-label">@Model.TotalProtein.ToString("F1")g / @Model.Goal.ProteinTargetG.ToString("F0")g</span>
+            </div>
+            <div class="w-full bg-gray-100 rounded-full h-2.5">
+                <div class="h-2.5 rounded-full bg-blue-400 transition-all"
+                     style="width: @Model.ProteinPercent%"
+                     id="protein-bar"></div>
+            </div>
+        </div>
+
+        <div>
+            <div class="flex justify-between text-xs text-gray-500 mb-1">
+                <span>🍞 Carbs</span>
+                <span id="carbs-label">@Model.TotalCarbs.ToString("F1")g / @Model.Goal.CarbsTargetG.ToString("F0")g</span>
+            </div>
+            <div class="w-full bg-gray-100 rounded-full h-2.5">
+                <div class="h-2.5 rounded-full bg-amber-400 transition-all"
+                     style="width: @Model.CarbsPercent%"
+                     id="carbs-bar"></div>
+            </div>
+        </div>
+
+        <div>
+            <div class="flex justify-between text-xs text-gray-500 mb-1">
+                <span>🧈 Fat</span>
+                <span id="fat-label">@Model.TotalFat.ToString("F1")g / @Model.Goal.FatTargetG.ToString("F0")g</span>
+            </div>
+            <div class="w-full bg-gray-100 rounded-full h-2.5">
+                <div class="h-2.5 rounded-full bg-orange-400 transition-all"
+                     style="width: @Model.FatPercent%"
+                     id="fat-bar"></div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- Recent entries -->
+<div class="bg-white rounded-xl border border-gray-200 p-5 mb-4">
+    <div class="flex items-center justify-between mb-4">
+        <h2 class="text-sm font-medium text-gray-600">Today's entries</h2>
+        <a href="/diary" class="text-xs text-green-500 hover:underline">View full diary →</a>
+    </div>
+
+    @if (!Model.HasEntries)
+    {
+        <div class="text-center py-8 text-gray-400" id="empty-state">
+            <div class="text-3xl mb-2">🍽️</div>
+            <div class="text-sm">Nothing logged yet today</div>
+            <a href="/food/search"
+               class="text-green-500 text-xs mt-2 inline-block hover:underline">
+                Search and add your first meal →
+            </a>
+        </div>
+    }
+    else
+    {
+        <div class="space-y-2" id="recent-entries">
+            @foreach (var entry in Model.RecentEntries)
+            {
+                <div class="flex items-center justify-between py-2 border-b border-gray-50 last:border-0">
+                    <div>
+                        <div class="text-sm text-gray-700">@entry.FoodName</div>
+                        <div class="text-xs text-gray-400">
+                            @entry.MealType · @entry.QuantityGrams.ToString("F0")g
+                        </div>
+                    </div>
+                    <div class="text-sm font-medium text-gray-600">
+                        @entry.Calories.ToString("F0") kcal
+                    </div>
+                </div>
+            }
+            @if (Model.TodayEntries.Count > 3)
+            {
+                <div class="text-center pt-2">
+                    <a href="/diary" class="text-xs text-gray-400 hover:text-green-500">
+                        + @(Model.TodayEntries.Count - 3) more entries in diary
+                    </a>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+<!-- Quick links -->
+<div class="grid grid-cols-2 gap-3">
+    <a href="/diary"
+       class="bg-white border border-gray-200 rounded-xl p-4 hover:border-green-300 transition-colors text-center">
+        <div class="text-2xl mb-1">📔</div>
+        <div class="text-sm font-medium text-gray-700">My Diary</div>
+        <div class="text-xs text-gray-400">View all meals</div>
+    </a>
+    <a href="/goals"
+       class="bg-white border border-gray-200 rounded-xl p-4 hover:border-green-300 transition-colors text-center">
+        <div class="text-2xl mb-1">🎯</div>
+        <div class="text-sm font-medium text-gray-700">My Goals</div>
+        <div class="text-xs text-gray-400">Set daily targets</div>
+    </a>
 </div>

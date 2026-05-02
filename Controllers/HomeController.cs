@@ -1,36 +1,37 @@
+using CalorieTracker.Data;
 using CalorieTracker.Models;
-using CalorieTracker.Services.FoodApi;
 using Microsoft.AspNetCore.Mvc;
-using System.Diagnostics;
-using static System.Net.WebRequestMethods;
+using Microsoft.EntityFrameworkCore;
 
 namespace CalorieTracker.Controllers;
 
 public class HomeController : Controller
 {
-    private readonly ILogger<HomeController> _logger;
-    private readonly IFoodApiClient _foodApi;
+    private readonly AppDbContext _db;
 
-    public HomeController(ILogger<HomeController> logger, IFoodApiClient foodApi)
+    public HomeController(AppDbContext db)
     {
-        _logger = logger;
-        _foodApi = foodApi;
+        _db = db;
     }
 
-    public IActionResult Index()
+    public async Task<IActionResult> Index()
     {
-        return View();
-    }
+        var today = DateTime.Today;
 
-    public IActionResult Privacy()
-    {
-        return View();
-    }
+        var entries = await _db.DiaryEntries
+            .Where(e => e.Date == today)
+            .OrderBy(e => e.CreatedAt)
+            .ToListAsync();
 
-    [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
-    public IActionResult Error()
-    {
-        return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
-    }
+        var goal = await _db.DailyGoals.FirstOrDefaultAsync() ?? new DailyGoal();
 
+        var vm = new DashboardViewModel
+        {
+            Today = today,
+            TodayEntries = entries,
+            Goal = goal
+        };
+
+        return View(vm);
+    }
 }
