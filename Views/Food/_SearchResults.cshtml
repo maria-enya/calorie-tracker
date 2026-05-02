@@ -16,55 +16,63 @@ else
             var carbs = product.Nutriments?.CarbsPer100g ?? 0;
             var fat = product.Nutriments?.FatPer100g ?? 0;
 
-            <div class="bg-white border border-gray-200 rounded-xl p-4" id="food-@product.Barcode">
-                <div class="flex items-start justify-between gap-4">
-                    <div class="flex-1">
-                        <div class="font-medium text-gray-800">@product.ProductName</div>
-                        @if (!string.IsNullOrEmpty(product.Brands))
-                        {
-                            <div class="text-xs text-gray-400 mt-0.5">@product.Brands</div>
-                        }
-                        <div class="flex gap-4 mt-2 text-xs text-gray-500">
-                            <span>🔥 @cal.ToString("F0") kcal</span>
-                            <span>🥩 @protein.ToString("F1")g protein</span>
-                            <span>🍞 @carbs.ToString("F1")g carbs</span>
-                            <span>🧈 @fat.ToString("F1")g fat</span>
-                        </div>
-                    </div>
+            <div class="bg-white border border-gray-200 rounded-xl p-4 food-result"
+                 id="food-@product.Barcode">
 
-                    <!-- Add to diary form -->
-                    <div class="flex flex-col gap-2 min-w-[180px]">
-                        <div class="flex gap-2">
-                            <input type="number"
-                                   id="grams-@product.Barcode"
-                                   value="100"
-                                   min="1"
-                                   max="2000"
-                                   class="w-20 border border-gray-300 rounded px-2 py-1 text-sm" />
-                            <span class="text-xs text-gray-400 self-center">g</span>
-                        </div>
-                        <select id="meal-@product.Barcode"
-                                class="border border-gray-300 rounded px-2 py-1 text-sm">
-                            <option>Breakfast</option>
-                            <option>Lunch</option>
-                            <option selected>Dinner</option>
-                            <option>Snack</option>
-                        </select>
-                        <button id="btn-@product.Barcode"
-                                class="bg-green-500 hover:bg-green-600 text-white text-sm rounded-lg px-3 py-1.5 transition-colors"
-                                hx-post="/food/add"
-                                hx-target="#btn-@product.Barcode"
-                                hx-swap="outerHTML"
-                                hx-vals="js:{
+                <!-- Food name + macros -->
+                <div class="mb-3">
+                    <div class="font-medium text-gray-800">@product.ProductName</div>
+                    @if (!string.IsNullOrEmpty(product.Brands))
+                    {
+                        <div class="text-xs text-gray-400 mt-0.5">@product.Brands</div>
+                    }
+                    <!-- Macro pills — wrap on mobile -->
+                    <div class="flex flex-wrap gap-2 mt-2">
+                        <span class="text-xs bg-red-50 text-red-500 px-2 py-0.5 rounded-full">
+                            🔥 @cal.ToString("F0") kcal
+                        </span>
+                        <span class="text-xs bg-blue-50 text-blue-500 px-2 py-0.5 rounded-full">
+                            P @protein.ToString("F1")g
+                        </span>
+                        <span class="text-xs bg-amber-50 text-amber-500 px-2 py-0.5 rounded-full">
+                            C @carbs.ToString("F1")g
+                        </span>
+                        <span class="text-xs bg-orange-50 text-orange-500 px-2 py-0.5 rounded-full">
+                            F @fat.ToString("F1")g
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Add to diary — full width on mobile -->
+                <div class="flex flex-wrap items-center gap-2 pt-3 border-t border-gray-100">
+                    <div class="flex items-center gap-1.5">
+                        <input type="number"
+                               id="grams-@product.Barcode"
+                               value="100" min="1" max="2000"
+                               class="w-20 border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400" />
+                        <span class="text-xs text-gray-400">g</span>
+                    </div>
+                    <select id="meal-@product.Barcode"
+                            class="flex-1 min-w-[100px] border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400">
+                        <option>Breakfast</option>
+                        <option>Lunch</option>
+                        <option selected>Dinner</option>
+                        <option>Snack</option>
+                    </select>
+                    <button id="btn-@product.Barcode"
+                            class="flex-1 min-w-[100px] bg-green-500 hover:bg-green-600 text-white text-sm rounded-lg px-3 py-1.5 transition-colors"
+                            hx-post="/food/add"
+                            hx-target="#btn-@product.Barcode"
+                            hx-swap="outerHTML"
+                            hx-vals="js:{
                                         barcode: '@product.Barcode',
                                         foodName: '@Html.Raw(product.ProductName?.Replace("'", "\\'"))',
                                         grams: document.getElementById('grams-@product.Barcode').value,
                                         mealType: document.getElementById('meal-@product.Barcode').value,
                                         date: new Date().toISOString().split('T')[0]
                                     }">
-                            + Add to diary
-                        </button>
-                    </div>
+                        + Add to diary
+                    </button>
                 </div>
             </div>
         }

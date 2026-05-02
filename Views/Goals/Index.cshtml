@@ -43,13 +43,13 @@
         </div>
 
         <!-- Calorie presets -->
-        <div class="flex gap-2 mt-3">
+        <div class="flex flex-wrap gap-2 mt-3">
             <span class="text-xs text-gray-400 self-center">Presets:</span>
             @foreach (var preset in new[] { 1500, 1800, 2000, 2200, 2500 })
             {
                 <button type="button"
-                        onclick="document.getElementById('calorie-target').value = @preset"
-                        class="text-xs border border-gray-200 rounded-full px-3 py-1 hover:border-green-400 hover:text-green-600 transition-colors">
+                        onclick="document.getElementById('calorie-target').value = @preset; updateMacros()"
+                        class="text-xs border border-gray-200 rounded-full px-3 py-1.5 hover:border-green-400 hover:text-green-600 transition-colors">
                     @preset
                 </button>
             }
