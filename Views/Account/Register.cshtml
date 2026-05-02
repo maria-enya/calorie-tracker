@@ -1,0 +1,84 @@
+﻿@model CalorieTracker.Models.RegisterViewModel
+@{
+    ViewData["Title"] = "Register";
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Register - CalorieTracker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 min-h-screen flex items-center justify-center">
+    <div class="w-full max-w-sm">
+        <div class="text-center mb-8">
+            <div class="text-4xl mb-2">🥗</div>
+            <h1 class="text-2xl font-semibold text-gray-800">CalorieTracker</h1>
+            <p class="text-gray-400 text-sm mt-1">Create your account</p>
+        </div>
+
+        <div class="bg-white rounded-xl border border-gray-200 p-6">
+            <form method="post" action="/account/register">
+                @Html.AntiForgeryToken()
+
+                <div asp-validation-summary="All"
+                     class="bg-red-50 border border-red-200 text-red-600 text-sm rounded-lg px-4 py-3 mb-4">
+                </div>
+
+                <div class="mb-4">
+                    <label asp-for="DisplayName"
+                           class="block text-sm text-gray-600 mb-1">Display name</label>
+                    <input asp-for="DisplayName"
+                           type="text"
+                           id="display-name"
+                           class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-400"
+                           placeholder="Your name" />
+                </div>
+
+                <div class="mb-4">
+                    <label asp-for="Email"
+                           class="block text-sm text-gray-600 mb-1">Email</label>
+                    <input asp-for="Email"
+                           type="email"
+                           id="email"
+                           class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-400"
+                           placeholder="you@example.com" />
+                </div>
+
+                <div class="mb-4">
+                    <label asp-for="Password"
+                           class="block text-sm text-gray-600 mb-1">Password</label>
+                    <input asp-for="Password"
+                           type="password"
+                           id="password"
+                           class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-400"
+                           placeholder="Min. 6 characters" />
+                </div>
+
+                <div class="mb-6">
+                    <label asp-for="ConfirmPassword"
+                           class="block text-sm text-gray-600 mb-1">Confirm password</label>
+                    <input asp-for="ConfirmPassword"
+                           type="password"
+                           id="confirm-password"
+                           class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-400"
+                           placeholder="Repeat password" />
+                </div>
+
+                <button type="submit"
+                        id="register-btn"
+                        class="w-full bg-green-500 hover:bg-green-600 text-white font-medium rounded-lg py-2.5 transition-colors">
+                    Create account
+                </button>
+            </form>
+        </div>
+
+        <p class="text-center text-sm text-gray-400 mt-4">
+            Already have an account?
+            <a href="/account/login" class="text-green-500 hover:underline">Sign in</a>
+        </p>
+    </div>
+</body>
+</html>

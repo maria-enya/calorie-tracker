@@ -1,11 +1,11 @@
 ﻿using CalorieTracker.Models;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using System.Collections.Generic;
-using System.Reflection.Emit;
 
 namespace CalorieTracker.Data;
 
-public class AppDbContext : DbContext
+public class AppDbContext : IdentityDbContext<AppUser>
 {
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
@@ -14,7 +14,8 @@ public class AppDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        // Seed a default daily goal so the app works out of the box
+        base.OnModelCreating(modelBuilder);
+
         modelBuilder.Entity<DailyGoal>().HasData(new DailyGoal
         {
             Id = 1,

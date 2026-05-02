@@ -6,6 +6,8 @@ public class DailyGoal
 {
     public int Id { get; set; }
 
+    public string UserId { get; set; } = string.Empty;
+
     [Required]
     [Range(500, 10000, ErrorMessage = "Calories must be between 500 and 10,000")]
     [Display(Name = "Daily Calories")]

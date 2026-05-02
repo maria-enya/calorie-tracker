@@ -1,10 +1,13 @@
 ﻿using CalorieTracker.Data;
 using CalorieTracker.Services;
 using CalorieTracker.Services.FoodApi;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace CalorieTracker.Controllers;
 
+[Authorize]
 public class FoodController : Controller
 {
     private readonly IFoodApiClient _foodApi;
@@ -34,22 +37,19 @@ public class FoodController : Controller
 
     [HttpPost]
     public async Task<IActionResult> Add(
-    string barcode,
-    string foodName,
-    double grams,
-    string mealType,
-    DateTime date)
+    string barcode, string foodName,
+    double grams, string mealType, DateTime date)
     {
-        var product = await _foodApi.GetByBarcodeAsync(barcode);
-
-        if (product is null)
-            product = new FoodProduct { ProductName = foodName, Barcode = barcode };
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+        var product = await _foodApi.GetByBarcodeAsync(barcode)
+            ?? new FoodProduct { ProductName = foodName, Barcode = barcode };
 
         var entry = NutritionCalculator.BuildEntry(product, grams, mealType, date);
+        entry.UserId = userId;  // ← stamp the user
+
         _db.DiaryEntries.Add(entry);
         await _db.SaveChangesAsync();
 
-        // Return success message — htmx swaps the button
         return Content("<span class='text-green-600 font-medium text-sm'>✓ Added!</span>", "text/html");
     }
 }

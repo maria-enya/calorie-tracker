@@ -1,10 +1,13 @@
 ﻿using CalorieTracker.Data;
 using CalorieTracker.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 namespace CalorieTracker.Controllers;
 
+[Authorize]
 public class GoalsController : Controller
 {
     private readonly AppDbContext _db;
@@ -14,24 +17,25 @@ public class GoalsController : Controller
         _db = db;
     }
 
-    // GET /goals
     public async Task<IActionResult> Index()
     {
-        var goal = await _db.DailyGoals.FirstOrDefaultAsync() ?? new DailyGoal();
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+        var goal = await _db.DailyGoals.FirstOrDefaultAsync(g => g.UserId == userId)
+            ?? new DailyGoal { UserId = userId };
         return View(goal);
     }
 
-    // POST /goals
     [HttpPost]
     public async Task<IActionResult> Index(DailyGoal model)
     {
-        if (!ModelState.IsValid)
-            return View(model);
+        if (!ModelState.IsValid) return View(model);
 
-        var existing = await _db.DailyGoals.FirstOrDefaultAsync();
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+        var existing = await _db.DailyGoals.FirstOrDefaultAsync(g => g.UserId == userId);
 
         if (existing is null)
         {
+            model.UserId = userId;
             model.UpdatedAt = DateTime.UtcNow;
             _db.DailyGoals.Add(model);
         }
@@ -46,7 +50,6 @@ public class GoalsController : Controller
         }
 
         await _db.SaveChangesAsync();
-
         TempData["Success"] = "Goals saved successfully!";
         return RedirectToAction(nameof(Index));
     }

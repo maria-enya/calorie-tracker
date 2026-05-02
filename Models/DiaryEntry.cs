@@ -3,6 +3,7 @@
 public class DiaryEntry
 {
     public int Id { get; set; }
+    public string UserId { get; set; } = string.Empty;
     public DateTime Date { get; set; }
     public string MealType { get; set; } = "Snack"; // Breakfast, Lunch, Dinner, Snack
     public string FoodName { get; set; } = string.Empty;

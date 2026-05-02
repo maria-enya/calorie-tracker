@@ -1,17 +1,38 @@
 using CalorieTracker.Data;
+using CalorieTracker.Models;
 using CalorieTracker.Services.FoodApi;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using System.Net;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllersWithViews();
 
-// Register SQLite database
+// SQLite
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlite("Data Source=calorie-tracker.db"));
 
-// Typed HTTP client for OpenFoodFacts
+// Identity
+builder.Services.AddIdentity<AppUser, IdentityRole>(options =>
+{
+    options.Password.RequireDigit = false;
+    options.Password.RequireUppercase = false;
+    options.Password.RequireNonAlphanumeric = false;
+    options.Password.RequiredLength = 6;
+    options.SignIn.RequireConfirmedEmail = false;
+})
+.AddEntityFrameworkStores<AppDbContext>()
+.AddDefaultTokenProviders();
+
+// Redirect to login if not authenticated
+builder.Services.ConfigureApplicationCookie(options =>
+{
+    options.LoginPath = "/account/login";
+    options.LogoutPath = "/account/logout";
+    options.AccessDeniedPath = "/account/login";
+});
+
+// OpenFoodFacts
 builder.Services.AddHttpClient<IFoodApiClient, OpenFoodFactsClient>(client =>
 {
     client.BaseAddress = new Uri("https://world.openfoodfacts.org/");
@@ -19,16 +40,16 @@ builder.Services.AddHttpClient<IFoodApiClient, OpenFoodFactsClient>(client =>
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36");
     client.Timeout = TimeSpan.FromSeconds(10);
 })
-.ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
+.ConfigurePrimaryHttpMessageHandler(() => new System.Net.Http.HttpClientHandler
 {
-    CookieContainer = new CookieContainer(),
+    CookieContainer = new System.Net.CookieContainer(),
     UseCookies = true,
     AllowAutoRedirect = true,
 });
 
 var app = builder.Build();
 
-// Auto-apply migrations on startup
+// Auto-apply migrations
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
@@ -44,6 +65,7 @@ if (!app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
+app.UseAuthentication();  // ? must be before UseAuthorization
 app.UseAuthorization();
 
 app.MapControllerRoute(
