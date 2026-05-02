@@ -1,0 +1,230 @@
+﻿@model CalorieTracker.Models.DailyGoal
+@{
+    ViewData["Title"] = "My Goals";
+}
+
+<div class="mb-6">
+    <h1 class="text-2xl font-semibold text-gray-800">Daily Goals</h1>
+    <p class="text-gray-400 text-sm mt-0.5">Set your daily nutrition targets</p>
+</div>
+
+<!-- Success message -->
+@if (TempData["Success"] is string successMsg)
+{
+    <div class="bg-green-50 border border-green-200 text-green-700 rounded-lg px-4 py-3 mb-5 text-sm"
+         id="success-message">
+        ✓ @successMsg
+    </div>
+}
+
+<form method="post" action="/goals">
+    @Html.AntiForgeryToken()
+
+    <!-- Calories -->
+    <div class="bg-white rounded-xl border border-gray-200 p-6 mb-4">
+        <h2 class="text-sm font-semibold text-gray-600 uppercase tracking-wide mb-4">
+            🔥 Calories
+        </h2>
+        <div class="flex items-center gap-4">
+            <div class="flex-1">
+                <label asp-for="CalorieTarget"
+                       class="block text-sm text-gray-600 mb-1">
+                    Daily calorie target
+                </label>
+                <input asp-for="CalorieTarget"
+                       type="number"
+                       id="calorie-target"
+                       class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-400"
+                       min="500" max="10000" step="50" />
+                <span asp-validation-for="CalorieTarget"
+                      class="text-red-500 text-xs mt-1 block"></span>
+            </div>
+            <div class="text-gray-400 text-sm pt-5">kcal / day</div>
+        </div>
+
+        <!-- Calorie presets -->
+        <div class="flex gap-2 mt-3">
+            <span class="text-xs text-gray-400 self-center">Presets:</span>
+            @foreach (var preset in new[] { 1500, 1800, 2000, 2200, 2500 })
+            {
+                <button type="button"
+                        onclick="document.getElementById('calorie-target').value = @preset"
+                        class="text-xs border border-gray-200 rounded-full px-3 py-1 hover:border-green-400 hover:text-green-600 transition-colors">
+                    @preset
+                </button>
+            }
+        </div>
+    </div>
+
+    <!-- Macros -->
+    <div class="bg-white rounded-xl border border-gray-200 p-6 mb-4">
+        <h2 class="text-sm font-semibold text-gray-600 uppercase tracking-wide mb-4">
+            💪 Macronutrients
+        </h2>
+        <div class="space-y-4">
+
+            <!-- Protein -->
+            <div>
+                <div class="flex items-center justify-between mb-1">
+                    <label asp-for="ProteinTargetG" class="text-sm text-gray-600">
+                        🥩 Protein
+                    </label>
+                    <span class="text-xs text-gray-400">4 kcal / g</span>
+                </div>
+                <div class="flex items-center gap-3">
+                    <input asp-for="ProteinTargetG"
+                           type="number"
+                           id="protein-target"
+                           class="w-28 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-400"
+                           min="0" max="500" step="5" />
+                    <span class="text-sm text-gray-400">g / day</span>
+                    <span class="text-xs text-blue-400 ml-auto" id="protein-kcal">
+                        = @((Model.ProteinTargetG * 4).ToString("F0")) kcal
+                    </span>
+                </div>
+                <span asp-validation-for="ProteinTargetG"
+                      class="text-red-500 text-xs mt-1 block"></span>
+            </div>
+
+            <!-- Carbs -->
+            <div>
+                <div class="flex items-center justify-between mb-1">
+                    <label asp-for="CarbsTargetG" class="text-sm text-gray-600">
+                        🍞 Carbohydrates
+                    </label>
+                    <span class="text-xs text-gray-400">4 kcal / g</span>
+                </div>
+                <div class="flex items-center gap-3">
+                    <input asp-for="CarbsTargetG"
+                           type="number"
+                           id="carbs-target"
+                           class="w-28 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-400"
+                           min="0" max="1000" step="5" />
+                    <span class="text-sm text-gray-400">g / day</span>
+                    <span class="text-xs text-amber-400 ml-auto" id="carbs-kcal">
+                        = @((Model.CarbsTargetG * 4).ToString("F0")) kcal
+                    </span>
+                </div>
+                <span asp-validation-for="CarbsTargetG"
+                      class="text-red-500 text-xs mt-1 block"></span>
+            </div>
+
+            <!-- Fat -->
+            <div>
+                <div class="flex items-center justify-between mb-1">
+                    <label asp-for="FatTargetG" class="text-sm text-gray-600">
+                        🧈 Fat
+                    </label>
+                    <span class="text-xs text-gray-400">9 kcal / g</span>
+                </div>
+                <div class="flex items-center gap-3">
+                    <input asp-for="FatTargetG"
+                           type="number"
+                           id="fat-target"
+                           class="w-28 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-400"
+                           min="0" max="300" step="5" />
+                    <span class="text-sm text-gray-400">g / day</span>
+                    <span class="text-xs text-orange-400 ml-auto" id="fat-kcal">
+                        = @((Model.FatTargetG * 9).ToString("F0")) kcal
+                    </span>
+                </div>
+                <span asp-validation-for="FatTargetG"
+                      class="text-red-500 text-xs mt-1 block"></span>
+            </div>
+
+            <!-- Fiber -->
+            <div>
+                <div class="flex items-center justify-between mb-1">
+                    <label asp-for="FiberTargetG" class="text-sm text-gray-600">
+                        🌾 Fiber
+                    </label>
+                </div>
+                <div class="flex items-center gap-3">
+                    <input asp-for="FiberTargetG"
+                           type="number"
+                           id="fiber-target"
+                           class="w-28 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-400"
+                           min="0" max="100" step="1" />
+                    <span class="text-sm text-gray-400">g / day</span>
+                </div>
+                <span asp-validation-for="FiberTargetG"
+                      class="text-red-500 text-xs mt-1 block"></span>
+            </div>
+        </div>
+
+        <!-- Macro calorie breakdown -->
+        <div class="mt-5 pt-4 border-t border-gray-100">
+            <div class="flex justify-between text-xs text-gray-400 mb-2">
+                <span>Macro calorie breakdown</span>
+                <span id="total-macro-kcal">calculating...</span>
+            </div>
+            <div class="w-full rounded-full h-2.5 flex overflow-hidden gap-0.5">
+                <div class="h-2.5 bg-blue-400 transition-all" id="protein-bar" style="width: 0%"></div>
+                <div class="h-2.5 bg-amber-400 transition-all" id="carbs-bar" style="width: 0%"></div>
+                <div class="h-2.5 bg-orange-400 transition-all" id="fat-bar" style="width: 0%"></div>
+            </div>
+            <div class="flex gap-4 mt-2 text-xs text-gray-400">
+                <span class="text-blue-400">● Protein <span id="protein-pct">0</span>%</span>
+                <span class="text-amber-400">● Carbs <span id="carbs-pct">0</span>%</span>
+                <span class="text-orange-400">● Fat <span id="fat-pct">0</span>%</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Save button -->
+    <button type="submit"
+            id="save-goals-btn"
+            class="w-full bg-green-500 hover:bg-green-600 text-white font-medium rounded-xl py-3 transition-colors">
+        Save Goals
+    </button>
+
+    <p class="text-center text-xs text-gray-400 mt-3">
+        Last updated: @Model.UpdatedAt.ToString("MMMM d, yyyy 'at' h:mm tt")
+    </p>
+</form>
+
+@section Scripts {
+    <script>
+        // Live macro kcal breakdown
+        const inputs = {
+            protein: document.getElementById('protein-target'),
+            carbs:   document.getElementById('carbs-target'),
+            fat:     document.getElementById('fat-target'),
+        };
+
+        function updateMacros() {
+            const p = parseFloat(inputs.protein.value) || 0;
+            const c = parseFloat(inputs.carbs.value)   || 0;
+            const f = parseFloat(inputs.fat.value)     || 0;
+
+            const pKcal = p * 4;
+            const cKcal = c * 4;
+            const fKcal = f * 9;
+            const total = pKcal + cKcal + fKcal;
+
+            document.getElementById('protein-kcal').textContent = `= ${Math.round(pKcal)} kcal`;
+            document.getElementById('carbs-kcal').textContent   = `= ${Math.round(cKcal)} kcal`;
+            document.getElementById('fat-kcal').textContent     = `= ${Math.round(fKcal)} kcal`;
+
+            if (total > 0) {
+                const pPct = Math.round(pKcal / total * 100);
+                const cPct = Math.round(cKcal / total * 100);
+                const fPct = 100 - pPct - cPct;
+
+                document.getElementById('protein-bar').style.width = pPct + '%';
+                document.getElementById('carbs-bar').style.width   = cPct + '%';
+                document.getElementById('fat-bar').style.width     = fPct + '%';
+
+                document.getElementById('protein-pct').textContent = pPct;
+                document.getElementById('carbs-pct').textContent   = cPct;
+                document.getElementById('fat-pct').textContent     = fPct;
+                document.getElementById('total-macro-kcal').textContent =
+                    `${Math.round(total)} kcal from macros`;
+            }
+        }
+
+        // Run on load and on every input change
+        Object.values(inputs).forEach(el => el.addEventListener('input', updateMacros));
+        updateMacros();
+    </script>
+}
