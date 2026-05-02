@@ -4,13 +4,19 @@ using CalorieTracker.Services.FoodApi;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
+var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllersWithViews();
 
 // SQLite
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlite("Data Source=calorie-tracker.db"));
+{
+    var dbPath = Path.Combine(
+        Environment.GetEnvironmentVariable("DATA_PATH") ?? ".",
+        "calorie-tracker.db");
+    options.UseSqlite($"Data Source={dbPath}");
+});
 
 // Identity
 builder.Services.AddIdentity<AppUser, IdentityRole>(options =>
@@ -72,4 +78,14 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
-app.Run();
+if (app.Environment.IsDevelopment())
+{
+    // Locally: let ASP.NET Core use its default ports (5000/5001)
+    // controlled by launchSettings.json as before
+    app.Run();
+}
+else
+{
+    // On Railway: use the injected PORT
+    app.Run($"http://0.0.0.0:{port}");
+}
