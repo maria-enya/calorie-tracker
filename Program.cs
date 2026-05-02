@@ -1,6 +1,7 @@
 using CalorieTracker.Data;
 using CalorieTracker.Services.FoodApi;
 using Microsoft.EntityFrameworkCore;
+using System.Net;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,9 +15,15 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 builder.Services.AddHttpClient<IFoodApiClient, OpenFoodFactsClient>(client =>
 {
     client.BaseAddress = new Uri("https://world.openfoodfacts.org/");
-    client.DefaultRequestHeaders.Add(
-        "User-Agent", "CalorieTracker/1.0 (youtube-tutorial; contact@example.com)");
+    client.DefaultRequestHeaders.Add("User-Agent",
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36");
     client.Timeout = TimeSpan.FromSeconds(10);
+})
+.ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
+{
+    CookieContainer = new CookieContainer(),
+    UseCookies = true,
+    AllowAutoRedirect = true,
 });
 
 var app = builder.Build();
