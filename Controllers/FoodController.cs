@@ -32,28 +32,24 @@ public class FoodController : Controller
         return PartialView("_SearchResults", products);
     }
 
-    // POST /food/add  (called by htmx when user adds to diary)
     [HttpPost]
     public async Task<IActionResult> Add(
-        string barcode,
-        string foodName,
-        double grams,
-        string mealType,
-        DateTime date)
+    string barcode,
+    string foodName,
+    double grams,
+    string mealType,
+    DateTime date)
     {
         var product = await _foodApi.GetByBarcodeAsync(barcode);
 
         if (product is null)
-        {
-            // Fallback: build a minimal product from the posted name
             product = new FoodProduct { ProductName = foodName, Barcode = barcode };
-        }
 
         var entry = NutritionCalculator.BuildEntry(product, grams, mealType, date);
         _db.DiaryEntries.Add(entry);
         await _db.SaveChangesAsync();
 
-        // htmx will replace the button with a success message
-        return Content("<span class='text-green-600 font-medium'>✓ Added to diary</span>", "text/html");
+        // Return success message — htmx swaps the button
+        return Content("<span class='text-green-600 font-medium text-sm'>✓ Added!</span>", "text/html");
     }
 }

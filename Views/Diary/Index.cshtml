@@ -1,0 +1,142 @@
+﻿@model CalorieTracker.Models.DiaryViewModel
+@{
+    ViewData["Title"] = "My Diary";
+    var mealOrder = new[] { "Breakfast", "Lunch", "Dinner", "Snack" };
+    var mealEmojis = new Dictionary<string, string>
+    {
+        ["Breakfast"] = "🌅",
+        ["Lunch"] = "☀️",
+        ["Dinner"] = "🌙",
+        ["Snack"] = "🍎"
+    };
+}
+
+<!-- Date navigation -->
+<div class="flex items-center justify-between mb-6">
+    <a href="/diary?date=@Model.PreviousDate.ToString("yyyy-MM-dd")"
+       class="text-gray-400 hover:text-green-600 text-2xl px-2">‹</a>
+
+    <div class="text-center">
+        <h1 class="text-xl font-semibold text-gray-800">
+            @(Model.IsToday ? "Today" : Model.SelectedDate.ToString("dddd"))
+        </h1>
+        <div class="text-sm text-gray-400" id="diary-date">
+            @Model.SelectedDate.ToString("MMMM d, yyyy")
+        </div>
+    </div>
+
+    <a href="/diary?date=@Model.NextDate.ToString("yyyy-MM-dd")"
+       id="next-day-btn"
+       class="text-gray-400 hover:text-green-600 text-2xl px-2 @(Model.IsToday ? "invisible" : "")">›</a>
+</div>
+
+<!-- Calorie summary bar -->
+<div class="bg-white rounded-xl border border-gray-200 p-5 mb-4">
+    <div class="flex justify-between items-end mb-2">
+        <span class="text-sm text-gray-500">Calories</span>
+        <span class="text-sm font-medium text-gray-700">
+            <span id="total-calories">@Model.TotalCalories.ToString("F0")</span>
+            / @Model.Goal.CalorieTarget.ToString("F0") kcal
+        </span>
+    </div>
+    <div class="w-full bg-gray-100 rounded-full h-3">
+        <div id="calorie-bar"
+             class="h-3 rounded-full transition-all @(Model.CaloriePercent >= 100 ? "bg-red-400" : "bg-green-400")"
+             style="width: @Model.CaloriePercent%">
+        </div>
+    </div>
+
+    <!-- Macro pills -->
+    <div class="grid grid-cols-3 gap-3 mt-4">
+        <div class="text-center">
+            <div class="text-xs text-gray-400 mb-1">Protein</div>
+            <div class="w-full bg-gray-100 rounded-full h-2">
+                <div class="h-2 rounded-full bg-blue-400" style="width: @Model.ProteinPercent%"></div>
+            </div>
+            <div class="text-xs font-medium text-gray-600 mt-1">
+                @Model.TotalProtein.ToString("F1")g / @Model.Goal.ProteinTargetG.ToString("F0")g
+            </div>
+        </div>
+        <div class="text-center">
+            <div class="text-xs text-gray-400 mb-1">Carbs</div>
+            <div class="w-full bg-gray-100 rounded-full h-2">
+                <div class="h-2 rounded-full bg-amber-400" style="width: @Model.CarbsPercent%"></div>
+            </div>
+            <div class="text-xs font-medium text-gray-600 mt-1">
+                @Model.TotalCarbs.ToString("F1")g / @Model.Goal.CarbsTargetG.ToString("F0")g
+            </div>
+        </div>
+        <div class="text-center">
+            <div class="text-xs text-gray-400 mb-1">Fat</div>
+            <div class="w-full bg-gray-100 rounded-full h-2">
+                <div class="h-2 rounded-full bg-orange-400" style="width: @Model.FatPercent%"></div>
+            </div>
+            <div class="text-xs font-medium text-gray-600 mt-1">
+                @Model.TotalFat.ToString("F1")g / @Model.Goal.FatTargetG.ToString("F0")g
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Meal groups -->
+@if (!Model.Entries.Any())
+{
+    <div class="text-center py-16 text-gray-400">
+        <div class="text-4xl mb-3">🍽️</div>
+        <div class="font-medium">No entries for this day</div>
+        <a href="/food/search" class="text-green-500 text-sm mt-2 inline-block hover:underline">
+            + Search and add food
+        </a>
+    </div>
+}
+else
+{
+    @foreach (var meal in mealOrder.Where(m => Model.EntriesByMeal.ContainsKey(m)))
+    {
+        var entries = Model.EntriesByMeal[meal];
+        var mealCalories = entries.Sum(e => e.Calories);
+
+        <div class="bg-white rounded-xl border border-gray-200 mb-3 overflow-hidden">
+            <div class="flex items-center justify-between px-4 py-3 border-b border-gray-100">
+                <span class="font-medium text-gray-700">
+                    @mealEmojis.GetValueOrDefault(meal, "🍴") @meal
+                </span>
+                <span class="text-sm text-gray-400">@mealCalories.ToString("F0") kcal</span>
+            </div>
+
+            <div id="meal-@meal.ToLower()">
+                @foreach (var entry in entries)
+                {
+                    <div class="flex items-center justify-between px-4 py-3 border-b border-gray-50 last:border-0"
+                         id="entry-@entry.Id">
+                        <div class="flex-1">
+                            <div class="text-sm font-medium text-gray-700">@entry.FoodName</div>
+                            <div class="text-xs text-gray-400 mt-0.5">
+                                @entry.QuantityGrams.ToString("F0")g ·
+                                @entry.Calories.ToString("F0") kcal ·
+                                P: @entry.ProteinG.ToString("F1")g ·
+                                C: @entry.CarbsG.ToString("F1")g ·
+                                F: @entry.FatG.ToString("F1")g
+                            </div>
+                        </div>
+                        <button class="text-gray-300 hover:text-red-400 ml-4 text-lg transition-colors"
+                                hx-delete="/diary/delete/@entry.Id"
+                                hx-target="#entry-@entry.Id"
+                                hx-swap="outerHTML swap:300ms"
+                                hx-confirm="Remove @entry.FoodName from diary?">
+                            ×
+                        </button>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+}
+
+<!-- Add more food link -->
+<div class="mt-4 text-center">
+    <a href="/food/search"
+       class="inline-block bg-green-500 hover:bg-green-600 text-white text-sm font-medium rounded-lg px-5 py-2.5 transition-colors">
+        + Add Food
+    </a>
+</div>
