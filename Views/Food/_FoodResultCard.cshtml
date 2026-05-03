@@ -1,0 +1,72 @@
+﻿@model CalorieTracker.Services.FoodApi.FoodProduct
+
+@{
+    var cal = Model.Nutriments?.CaloriesPer100g ?? 0;
+    var protein = Model.Nutriments?.ProteinPer100g ?? 0;
+    var carbs = Model.Nutriments?.CarbsPer100g ?? 0;
+    var fat = Model.Nutriments?.FatPer100g ?? 0;
+    var safeId = Model.Barcode?.Replace("-", "_") ?? "unknown";
+}
+
+<div class="bg-white border border-gray-200 rounded-xl p-4 food-result"
+     id="food-@safeId">
+
+    <div class="mb-3">
+        <div class="font-medium text-gray-800">@Model.ProductName</div>
+        @if (!string.IsNullOrEmpty(Model.Brands))
+        {
+            <div class="text-xs text-gray-400 mt-0.5">@Model.Brands</div>
+        }
+        <div class="flex flex-wrap gap-2 mt-2">
+            <span class="text-xs bg-red-50 text-red-500 px-2 py-0.5 rounded-full">
+                🔥 @cal.ToString("F0") kcal
+            </span>
+            <span class="text-xs bg-blue-50 text-blue-500 px-2 py-0.5 rounded-full">
+                P @protein.ToString("F1")g
+            </span>
+            <span class="text-xs bg-amber-50 text-amber-500 px-2 py-0.5 rounded-full">
+                C @carbs.ToString("F1")g
+            </span>
+            <span class="text-xs bg-orange-50 text-orange-500 px-2 py-0.5 rounded-full">
+                F @fat.ToString("F1")g
+            </span>
+        </div>
+    </div>
+
+    <div class="flex flex-wrap items-center gap-2 pt-3 border-t border-gray-100">
+        <div class="flex items-center gap-1.5">
+            <input type="number"
+                   id="grams-@safeId"
+                   value="100" min="1" max="2000"
+                   class="w-20 border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400" />
+            <span class="text-xs text-gray-400">g</span>
+        </div>
+        <select id="meal-@safeId"
+                class="flex-1 min-w-[100px] border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400">
+            <option>Breakfast</option>
+            <option>Lunch</option>
+            <option selected>Dinner</option>
+            <option>Snack</option>
+        </select>
+        <button id="btn-@safeId"
+                class="flex-1 min-w-[100px] bg-green-500 hover:bg-green-600 text-white text-sm rounded-lg px-3 py-1.5 transition-colors"
+                hx-post="/food/add"
+                hx-target="#btn-@safeId"
+                hx-swap="outerHTML"
+                hx-vals="js:{
+            barcode: '@Model.Barcode',
+            foodName: '@Html.Raw(Model.ProductName?.Replace("'", "\\'"))',
+            grams: document.getElementById('grams-@safeId').value,
+            mealType: document.getElementById('meal-@safeId').value,
+            date: new Date().toISOString().split('T')[0],
+            caloriesPer100g: '@((Model.Nutriments?.CaloriesPer100g ?? 0).ToString("F2", System.Globalization.CultureInfo.InvariantCulture))',
+            proteinPer100g:  '@((Model.Nutriments?.ProteinPer100g ?? 0).ToString("F2", System.Globalization.CultureInfo.InvariantCulture))',
+            carbsPer100g:    '@((Model.Nutriments?.CarbsPer100g ?? 0).ToString("F2", System.Globalization.CultureInfo.InvariantCulture))',
+            fatPer100g:      '@((Model.Nutriments?.FatPer100g ?? 0).ToString("F2", System.Globalization.CultureInfo.InvariantCulture))',
+            fiberPer100g:    '@((Model.Nutriments?.FiberPer100g ?? 0).ToString("F2", System.Globalization.CultureInfo.InvariantCulture))',
+            sugarPer100g:    '@((Model.Nutriments?.SugarPer100g ?? 0).ToString("F2", System.Globalization.CultureInfo.InvariantCulture))'
+        }">
+            + Add to diary
+        </button>
+    </div>
+</div>

@@ -1,0 +1,114 @@
+﻿@model CalorieTracker.Models.ManualFoodViewModel
+@{
+    ViewData["Title"] = "Add Food Manually";
+}
+
+<div class="mb-5">
+    <a href="/food/search" class="text-sm text-gray-400 hover:text-green-500">← Back to search</a>
+    <h1 class="text-xl font-semibold text-gray-800 mt-2">Add Food Manually</h1>
+    <p class="text-gray-400 text-sm mt-0.5">For home-cooked meals or foods not in the database</p>
+</div>
+
+<form method="post" action="/food/manual">
+    @Html.AntiForgeryToken()
+
+    <!-- Food name + quantity -->
+    <div class="bg-white rounded-xl border border-gray-200 p-5 mb-4">
+        <h2 class="text-sm font-semibold text-gray-600 uppercase tracking-wide mb-4">
+            🍽️ Food details
+        </h2>
+
+        <div class="mb-4">
+            <label asp-for="FoodName" class="block text-sm text-gray-600 mb-1" />
+            <input asp-for="FoodName"
+                   id="food-name"
+                   type="text"
+                   placeholder="e.g. Baked potato with butter"
+                   class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-400" />
+            <span asp-validation-for="FoodName" class="text-red-500 text-xs mt-1 block" />
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+            <div>
+                <label asp-for="Grams" class="block text-sm text-gray-600 mb-1" />
+                <input asp-for="Grams"
+                       id="manual-grams"
+                       type="number" min="1" max="5000"
+                       class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-400" />
+                <span asp-validation-for="Grams" class="text-red-500 text-xs mt-1 block" />
+            </div>
+            <div>
+                <label asp-for="MealType" class="block text-sm text-gray-600 mb-1" />
+                <select asp-for="MealType"
+                        id="manual-meal"
+                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-400">
+                    <option>Breakfast</option>
+                    <option>Lunch</option>
+                    <option>Dinner</option>
+                    <option>Snack</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="mt-4">
+            <label asp-for="Date" class="block text-sm text-gray-600 mb-1" />
+            <input asp-for="Date"
+                   type="date"
+                   class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-400" />
+        </div>
+    </div>
+
+    <!-- Nutrition -->
+    <div class="bg-white rounded-xl border border-gray-200 p-5 mb-4">
+        <h2 class="text-sm font-semibold text-gray-600 uppercase tracking-wide mb-4">
+            📊 Nutrition (per total quantity)
+        </h2>
+        <p class="text-xs text-gray-400 mb-4">
+            Enter the total nutrition for the quantity you specified above, not per 100g.
+        </p>
+
+        <div class="grid grid-cols-2 gap-4">
+            <div>
+                <label asp-for="Calories" class="block text-sm text-gray-600 mb-1">🔥 Calories (kcal)</label>
+                <input asp-for="Calories"
+                       type="number" min="0" step="1"
+                       class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-400" />
+                <span asp-validation-for="Calories" class="text-red-500 text-xs block" />
+            </div>
+            <div>
+                <label asp-for="ProteinG" class="block text-sm text-gray-600 mb-1">🥩 Protein (g)</label>
+                <input asp-for="ProteinG"
+                       type="number" min="0" step="0.1"
+                       class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-400" />
+                <span asp-validation-for="ProteinG" class="text-red-500 text-xs block" />
+            </div>
+            <div>
+                <label asp-for="CarbsG" class="block text-sm text-gray-600 mb-1">🍞 Carbs (g)</label>
+                <input asp-for="CarbsG"
+                       type="number" min="0" step="0.1"
+                       class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-400" />
+                <span asp-validation-for="CarbsG" class="text-red-500 text-xs block" />
+            </div>
+            <div>
+                <label asp-for="FatG" class="block text-sm text-gray-600 mb-1">🧈 Fat (g)</label>
+                <input asp-for="FatG"
+                       type="number" min="0" step="0.1"
+                       class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-400" />
+                <span asp-validation-for="FatG" class="text-red-500 text-xs block" />
+            </div>
+            <div>
+                <label asp-for="FiberG" class="block text-sm text-gray-600 mb-1">🌾 Fiber (g)</label>
+                <input asp-for="FiberG"
+                       type="number" min="0" step="0.1"
+                       class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-400" />
+                <span asp-validation-for="FiberG" class="text-red-500 text-xs block" />
+            </div>
+        </div>
+    </div>
+
+    <button type="submit"
+            id="manual-submit-btn"
+            class="w-full bg-green-500 hover:bg-green-600 text-white font-medium rounded-xl py-3 transition-colors">
+        Add to Diary
+    </button>
+</form>

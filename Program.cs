@@ -1,8 +1,9 @@
 using CalorieTracker.Data;
 using CalorieTracker.Models;
+using CalorieTracker.Services;
 using CalorieTracker.Services.FoodApi;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -58,6 +59,16 @@ builder.Services.AddHttpClient<IFoodApiClient, OpenFoodFactsClient>(client =>
     UseCookies = true,
     AllowAutoRedirect = true,
 });
+
+// USDA food API
+builder.Services.AddHttpClient<UsdaFoodClient>(client =>
+{
+    client.BaseAddress = new Uri("https://api.nal.usda.gov/fdc/v1/");
+    client.Timeout = TimeSpan.FromSeconds(10);
+});
+
+// Combined search service
+builder.Services.AddScoped<CombinedFoodSearchService>();
 
 var app = builder.Build();
 
